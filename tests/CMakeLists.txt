@@ -2,10 +2,12 @@
 set(SOURCES
         main.c
         test_tsk.c
+
+        dft.c
         )
 
 set(HEADERS
-        # main.h
+        misc.h
         )
 
 
@@ -23,7 +25,7 @@ include_directories(
 )
 
 find_library(PCUNIT_LIBRARY ${PCUNIT_LIBRARIES} /home/devel/.local/lib)
-target_link_libraries(${TEST_APP_NAME} ${PCUNIT_LIBRARY} ${LIB_NAME})
+target_link_libraries(${TEST_APP_NAME} ${PCUNIT_LIBRARY} ${LIB_NAME} m)
 
 find_package(Threads REQUIRED)
 if(THREADS_HAVE_PTHREAD_ARG)

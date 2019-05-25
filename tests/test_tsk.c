@@ -12,6 +12,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "misc.h"
+
+
 static const useconds_t us1000 = 1000;
 
 static void
@@ -52,8 +55,9 @@ static void test_example01(void) {
     ele_result_t actual = ele_task_create(attr);
     PCU_ASSERT_EQUAL(ELE_SUCCESS, actual);
 
-    useconds_t working_time = 5 * us1000;
-    usleep(working_time);
+//    useconds_t working_time = 5 * us1000;
+//    usleep(working_time);
+    dft(100);
 
     actual = ele_task_destroy(TASK_ID);
     PCU_ASSERT_EQUAL(ELE_SUCCESS, actual);
