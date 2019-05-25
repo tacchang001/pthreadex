@@ -63,7 +63,7 @@ static void test_example01(void) {
 PCU_Suite *TaskTest_suite(void)
 {
     static PCU_Test tests[] = {
-            { "ele_task_create", test_example01 },
+            { "single task", test_example01 },
     };
     static PCU_Suite suite = {
             "ExampleTest", tests, sizeof(tests) / sizeof(tests[0]) };
