@@ -9,25 +9,25 @@ extern "C" {
 /**
  *
  */
-typedef void * (*ele_task_entry_t)(void*);
+typedef void *(*ele_task_entry_t)(void *);
 
 /**
  *
  */
 typedef struct {
-	int id;
-	int schedpolicy;
-	int schedparam;
-	int cpu; // -1: disable
-	ele_task_entry_t entry;
-	void* arg;
+    int id;
+    int schedpolicy;
+    int schedparam;
+    int cpu; // -1: disable
+    ele_task_entry_t entry;
+    void *arg;
 } ele_task_init_attr_t;
 
 /**
  *
  */
 int ele_task_create(
-	const ele_task_init_attr_t attr);
+        const ele_task_init_attr_t attr);
 
 /**
  *
@@ -43,8 +43,28 @@ int ele_task_join(int id);
  *
  */
 pthread_t ele_task_get_thread_id(
-	const int id
+        const int id
 );
+
+
+/**
+ *
+ */
+void ele_task_display_pthread_attr(
+        const int id
+);
+
+
+
+
+
+
+/**
+ *
+ */
+void display_pthread_attr(
+        const pthread_attr_t *const attr,
+        const char *const prefix);
 
 #ifdef __cplusplus
 }
