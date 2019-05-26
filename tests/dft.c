@@ -1,5 +1,9 @@
 #include "misc.h"
 #include <math.h>
+#define ENABLE_TASK_CANCELATION
+#ifdef ENABLE_TASK_CANCELATION
+#include <pthread.h>
+#endif
 
 int dft(const int max) {
     int k, n, i;
@@ -18,6 +22,9 @@ int dft(const int max) {
             re += f[k] * cos(2 * M_PI * k * n / i);
             im += -f[k] * sin(2 * M_PI * k * n / i);
         }
+#ifdef ENABLE_TASK_CANCELATION
+        pthread_testcancel(); /* A cancellation point */
+#endif
         result_re[n] = re;
         result_im[n] = im;
     }

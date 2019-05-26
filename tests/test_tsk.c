@@ -14,6 +14,7 @@
 
 #include "misc.h"
 
+// #define EXECUTE_WITH_ROOT
 
 static const useconds_t us1000 = 1000;
 
@@ -46,8 +47,13 @@ static void test_example01(void) {
     int a = 10;
 	ele_task_init_attr_t attr = {
 		.id = TASK_ID,
+#ifdef EXECUTE_WITH_ROOT
+        .schedpolicy = SCHED_FIFO,
+        .schedparam = 50,
+#else
 		.schedpolicy = SCHED_OTHER,
 		.schedparam = 0,
+#endif
 		.entry = anything,
 		.arg = &a
 	};
