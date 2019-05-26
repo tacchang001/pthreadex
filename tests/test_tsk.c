@@ -54,11 +54,11 @@ static void test_example01(void) {
 
     ele_result_t actual = ele_task_create(attr);
     PCU_ASSERT_EQUAL(ELE_SUCCESS, actual);
-    ele_task_display_pthread_attr(TASK_ID);
+//    ele_task_display_pthread_attr(TASK_ID);
 
-//    useconds_t working_time = 5 * us1000;
-//    usleep(working_time);
-    dft(100);
+    useconds_t working_time = 5 * us1000;
+    usleep(working_time);
+//    dft(100);
 
     actual = ele_task_destroy(TASK_ID);
     PCU_ASSERT_EQUAL(ELE_SUCCESS, actual);

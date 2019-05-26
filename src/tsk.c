@@ -39,8 +39,8 @@ static void print_thread_affinity(int tskno, int cpu, const pthread_t id) {
 	int cores = sysconf(_SC_NPROCESSORS_ONLN);
 	cpu_set_t cpuset;
 	int result = pthread_getaffinity_np(id, sizeof(cpuset), &cpuset);
-	if (result == -1) {
-		perror("pthread_getaffinity_np");
+	if (result != 0) {
+        ELE_PERROR("print_thread_affinity");
 		return;
 	}
 	int i;
@@ -102,30 +102,29 @@ int ele_task_create(
 		pthread_attr_t a;
 		memset(&a, 0, sizeof(a));
 		if (pthread_attr_init(&a) != 0) {
-			ELE_PERROR("pthread_attr_init");
+			ELE_PERROR("ele_task_create");
 			return ELE_FAILURE;
 		}
 		switch (attr.schedpolicy) {
 		case SCHED_FIFO:
 		case SCHED_RR:
 			if (pthread_attr_setinheritsched(&a, PTHREAD_EXPLICIT_SCHED) != 0) {
-				ELE_PERROR("pthread_attr_setinheritsched");
+				ELE_PERROR("ele_task_create");
 				return ELE_FAILURE;
 			}
 			if (pthread_attr_setschedpolicy(&a, attr.schedpolicy) != 0) {
-				ELE_PERROR("pthread_attr_setschedpolicy");
+				ELE_PERROR("ele_task_create");
 				return ELE_FAILURE;
 			}
 			const struct sched_param sp = {
 				attr.schedparam
 			};
 			if (pthread_attr_setschedparam(&a, &sp) != 0) {
-				ELE_PERROR("pthread_attr_setschedparam");
 				ELE_ERROR_OUTOFRANGE(
 					sched_get_priority_min(attr.schedpolicy),
 					sp.__sched_priority,
 					sched_get_priority_max(attr.schedpolicy));
-				return ELE_FAILURE;
+				return ELE_OUTOFRANGE;
 			}
 			break;
 		default:
@@ -133,7 +132,7 @@ int ele_task_create(
 		}
 		pthread_t id = 0;
 		if (pthread_create(&id, &a, attr.entry, attr.arg) != 0) {
-			ELE_PERROR("pthread_create");
+			ELE_PERROR("ele_task_create");
 			return ELE_FAILURE;
 		}
 
@@ -147,8 +146,8 @@ int ele_task_create(
 			CPU_ZERO(&cpuset);
 			CPU_SET(attr.cpu, &cpuset);
 			int result = pthread_setaffinity_np(id, sizeof(cpu_set_t), &cpuset);
-			if (result == -1) {
-				perror("pthread_setaffinity_np");
+			if (result != 0) {
+				perror("ele_task_create");
 				fprintf(stderr, "cpu = %d\n", attr.cpu);
 				return ELE_FAILURE;
 			}
@@ -175,12 +174,12 @@ int ele_task_destroy(int id)
 		const pthread_t tid = ele_task_get_thread_id(id);
 
 		if (pthread_cancel(tid) != 0) {
-			ELE_PERROR("pthread_cancel");
+			ELE_PERROR("ele_task_destroy");
 		}
 
 		void *result = NULL;
 		if (pthread_join(tid, &result) != 0) {
-			ELE_PERROR("pthread_join");
+			ELE_PERROR("ele_task_destroy");
 		}
 	} while (0);
 
@@ -198,7 +197,7 @@ int ele_task_join(int id)
 
 	void *result = NULL;
 	if (pthread_join(tid, &result) != 0) {
-		ELE_PERROR("pthread_join");
+		ELE_PERROR("ele_task_join");
 	}
 
 	return 0;
@@ -219,10 +218,10 @@ void ele_task_display_pthread_attr(const int id) {
             printf("%sThread id           = %lx\n", prefix, tid);
             display_pthread_attr(&attr, prefix);
         } else {
-            fprintf(stderr, "pthread_getattr_np() failure\n");
+            ELE_PERROR("ele_task_display_pthread_attr");
         }
     } else {
-        fprintf(stderr, "NOT FOUND thread id:%d\n", id);
+        ELE_PERROR("ele_task_display_pthread_attr");
     }
 }
 
