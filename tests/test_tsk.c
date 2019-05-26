@@ -83,6 +83,32 @@ static void test_example01(void) {
 }
 
 static void test_example02(void) {
+    for (int i = 1; i < 100; i++) {
+        int deadline = 1;
+        ele_task_init_attr_t attr = {
+    #ifdef EXECUTE_WITH_ROOT
+        .schedpolicy = SCHED_FIFO,
+        .schedparam = 50,
+    #else
+                .schedpolicy = SCHED_OTHER,
+                .schedparam = 0,
+    #endif
+                .start_routine_entry = example02,
+                .start_routine_arg = &deadline
+        };
+
+        attr.id = i;
+        ele_result_t actual = ele_task_create(attr, ELE_TASK_NO_WAIT);
+        PCU_ASSERT_EQUAL(ELE_SUCCESS, actual);
+
+        usleep(20);
+
+        actual = ele_task_join(i);
+        PCU_ASSERT_EQUAL(ELE_SUCCESS, actual);
+    }
+}
+
+static void test_example03(void) {
     const int TASK_ID1 = 100;
     const int TASK_ID2 = 101;
     const int TASK_ID3 = 102;
@@ -124,7 +150,8 @@ static void test_example02(void) {
 PCU_Suite *TaskTest_suite(void) {
     static PCU_Test tests[] = {
             {"single task", test_example01},
-            {"pthread_cond_broadcast", test_example02},
+            {"many threads", test_example02},
+            {"pthread_cond_broadcast", test_example03},
     };
     static PCU_Suite suite = {
             "ExampleTest", tests, sizeof(tests) / sizeof(tests[0])};

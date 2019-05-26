@@ -36,17 +36,22 @@ static const size_t TAB_SIZ = (sizeof(tab) / sizeof(tab[0]));
 static pthread_mutex_t mutex_wait_for_start;
 static pthread_cond_t cond_wait_for_start;
 
+static inline void init_record(ele_task_attr_t* tab) {
+    tab->thread_id = 0;
+    tab->init_attr.id = INVALID_TSK_NO;
+}
+
 __attribute__((constructor))
-static void ele_task_tab_init(void) {
+static void tab_init(void) {
     unsigned int i;
     for (i = 0; i < TAB_SIZ; i++) {
-        tab[i].init_attr.id = INVALID_TSK_NO;
-        tab[i].thread_id = 0;
+        init_record(&tab[i]);
     }
 
     pthread_mutex_init(&mutex_wait_for_start, NULL);
     pthread_cond_init(&cond_wait_for_start, NULL);
 }
+
 
 static void print_thread_affinity(int tskno, int cpu, const pthread_t id) {
 #ifndef NDEBUG
@@ -66,25 +71,33 @@ static void print_thread_affinity(int tskno, int cpu, const pthread_t id) {
 #endif
 }
 
+static ele_task_attr_t* get_task_attr(
+        const int id) {
+    unsigned int i = 0;
+    for (i = 0; i < TAB_SIZ; i++) {
+        if (tab[i].init_attr.id == id) {
+            return &tab[i];
+        }
+    }
+
+    return NULL;
+}
+
+
 /*
  *
  */
 pthread_t ele_task_get_thread_id(
         const int id) {
-    unsigned int i = 0;
-    for (i = 0; i < TAB_SIZ; i++) {
-        if (tab[i].init_attr.id == id) {
-            return tab[i].thread_id;
-        }
-    }
 
-    return ELE_FAILURE;
+    ele_task_attr_t* tab = get_task_attr(id);
+    return (tab != NULL) ? tab->thread_id : ELE_FAILURE;
 }
 
 /*
  *
  */
-static ele_task_attr_t *ele_task_get_tab_space(void) {
+static ele_task_attr_t *get_free_task_attr(void) {
     unsigned int i;
     for (i = 0; i < TAB_SIZ; i++) {
         if (tab[i].init_attr.id == INVALID_TSK_NO) {
@@ -121,7 +134,7 @@ int ele_task_create(
     do {
         SCOPED_LOCK(errchkmutex);
 
-        ele_task_attr_t *const rec = ele_task_get_tab_space();
+        ele_task_attr_t *const rec = get_free_task_attr();
         if (rec == NULL) {
             return ELE_FAILURE;
         }
@@ -211,6 +224,10 @@ int ele_task_destroy(int id) {
         if (pthread_join(tid, &result) != 0) {
             ELE_PERROR("ele_task_destroy");
         }
+        ele_task_attr_t* tab = get_task_attr(id);
+        if (tab != NULL) {
+            init_record(tab);
+        }
     } while (0);
 
     return ELE_SUCCESS;
@@ -222,12 +239,20 @@ int ele_task_destroy(int id) {
 int ele_task_join(int id) {
     assert(id > 0);
 
-    const pthread_t tid = ele_task_get_thread_id(id);
+    do {
+        SCOPED_LOCK(errchkmutex);
 
-    void *result = NULL;
-    if (pthread_join(tid, &result) != 0) {
-        ELE_PERROR("ele_task_join");
-    }
+        const pthread_t tid = ele_task_get_thread_id(id);
+
+        void *result = NULL;
+        if (pthread_join(tid, &result) != 0) {
+            ELE_PERROR("ele_task_join");
+        }
+        ele_task_attr_t* tab = get_task_attr(id);
+        if (tab != NULL) {
+            init_record(tab);
+        }
+    } while (0);
 
     return 0;
 }
