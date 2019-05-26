@@ -87,7 +87,7 @@ static void test_example02(void) {
     const int TASK_ID2 = 101;
     const int TASK_ID3 = 102;
 
-    int a = 100;
+    int times = 1000;
     ele_task_init_attr_t attr = {
             .id = TASK_ID1,
 #ifdef EXECUTE_WITH_ROOT
@@ -98,7 +98,7 @@ static void test_example02(void) {
             .schedparam = 0,
 #endif
             .start_routine_entry = example02,
-            .start_routine_arg = &a
+            .start_routine_arg = &times
     };
 
     ele_result_t actual = ele_task_create(attr, ELE_TASK_WAIT);
