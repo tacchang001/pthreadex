@@ -111,16 +111,20 @@ static ele_task_attr_t *get_free_task_attr(void) {
 /*
  *
  */
-void ele_task_start_routine(
-        ele_task_start_routine_argument_t *thread) {
+static void* start_routine(
+        void *routine) {
 
-    if (thread->wait == ELE_TASK_WAIT) {
+    const ele_task_start_routine_argument_t* ep = (ele_task_start_routine_argument_t*)routine;
+
+    if (ep->wait == ELE_TASK_WAIT) {
         pthread_mutex_lock(&mutex_wait_for_start);
         pthread_cond_wait(&cond_wait_for_start, &mutex_wait_for_start);
         pthread_mutex_unlock(&mutex_wait_for_start);
     }
 
-    thread->start_routine_entry(thread->start_routine_arg);
+    ep->start_routine_entry(ep->start_routine_arg);
+
+    return NULL;
 }
 
 /*
@@ -175,7 +179,7 @@ int ele_task_create(
         t.start_routine_entry = attr.start_routine_entry;
         t.start_routine_arg = attr.start_routine_arg;
         t.wait = wait;
-        if (pthread_create(&id, &a, ele_task_start_routine, &t) != 0) {
+        if (pthread_create(&id, &a, start_routine, &t) != 0) {
             ELE_PERROR("ele_task_create");
             return ELE_FAILURE;
         }

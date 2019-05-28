@@ -4,6 +4,8 @@ set(SOURCES
         error.c
         stderror.c
         tsk.c
+        itc.c
+        mempool.c
         )
 
 set(DEFS
@@ -15,6 +17,7 @@ set(HEADERS
         ${DEFS}
         version.h
         tsk.h
+        mempool.h
         mutex_lock.h
         )
 

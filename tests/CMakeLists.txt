@@ -2,6 +2,8 @@
 set(SOURCES
         main.c
         test_tsk.c
+        test_mempool.c
+        test_itc.c
 
         dft.c
         )

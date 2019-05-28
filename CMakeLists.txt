@@ -48,6 +48,7 @@ endif(COMPILE_GCOV)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 add_subdirectory(${PROJECT_SOURCE_DIR}/${APP_NAME})
 
+
 option(COMPILE_TESTS "Compile the tests" ON)
 if(COMPILE_TESTS)
     message("[TEST] ON")
