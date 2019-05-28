@@ -248,8 +248,8 @@ int ele_task_join(int id) {
 
         const pthread_t tid = ele_task_get_thread_id(id);
 
-        void *result = NULL;
-        if (pthread_join(tid, &result) != 0) {
+        printf("tid:%x\n", tid);
+        if (pthread_join(tid, NULL) != 0) {
             ELE_PERROR("ele_task_join");
         }
         ele_task_attr_t* tab = get_task_attr(id);

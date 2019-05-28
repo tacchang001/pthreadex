@@ -6,11 +6,14 @@ set(SOURCES
         tsk.c
         itc.c
         mempool.c
+        queue.c
         )
 
 set(DEFS
         ${PROJECT_SOURCE_DIR}/include/pthreadex.h
         ${PROJECT_SOURCE_DIR}/include/ele_task.h
+        ${PROJECT_SOURCE_DIR}/include/queue.h
+
         )
 
 set(HEADERS
