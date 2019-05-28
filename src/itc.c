@@ -28,7 +28,7 @@ typedef struct {
 } itc_queue_attribute_t;
 
 ele_queue_desc_t *
-ele_queue_create(void) {
+ele_queue_create(size_t total_buffer_size) {
 	eventfd_t efd = eventfd(0, 0);
 	if (efd == -1) {
 		perror("eventfd");
@@ -52,6 +52,15 @@ ele_queue_create(void) {
 	TAILQ_INIT(&qattr->head);
 	qattr->efd = efd;
 	qdes->attribute = qattr;
+
+    size_t max_size = total_buffer_size;
+    ele_result_t result = ele_mempool_create(max_size);
+    if (result != ELE_SUCCESS) {
+        perror("malloc");
+        close(efd);
+        free(qattr);
+        return NULL;
+    }
 
 	return qdes;
 }
@@ -105,7 +114,6 @@ int ele_queue_pop(ele_queue_desc_t * qdes,
 	assert(qdes->attribute != NULL);
 	assert(QUEUE_ATTRIBUTE(qdes)->efd != -1);
 	assert(item != NULL);
-	assert(item->data_length > 0);
 
 	entry_t * t = QUEUE_ATTRIBUTE(qdes)->head.tqh_first;
 	assert(t != NULL);

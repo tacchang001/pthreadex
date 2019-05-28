@@ -10,8 +10,8 @@ static inline void lock_unlock(pthread_mutex_t **p) {
     pthread_mutex_unlock(*p);
 }
 
-static inline void rwlock_unlock(pthread_mutex_t **p) {
-    pthread_mutex_unlock(*p);
+static inline void rwlock_unlock(pthread_rwlock_t **p) {
+    pthread_rwlock_unlock(*p);
 }
 
 #define SCOPED_RDLOCK(m) \

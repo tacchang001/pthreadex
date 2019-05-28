@@ -22,7 +22,7 @@ struct ele_queue_item {
 };
 
 ele_queue_desc_t *
-ele_queue_create(void);
+ele_queue_create(size_t total_buffer_size);
 
 void
 ele_queue_destroy(ele_queue_desc_t * qdes);

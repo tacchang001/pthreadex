@@ -3,8 +3,8 @@
 int main(void)
 {
     const PCU_SuiteMethod suites[] = {
-            TaskTest_suite,
-            MemoryPoolTest_suite,
+//            TaskTest_suite,
+//            MemoryPoolTest_suite,
             ItcTest_suite,
     };
 

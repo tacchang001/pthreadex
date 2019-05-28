@@ -11,7 +11,7 @@
 #include "mempool.h"
 #include "mutex_lock.h"
 
-static const size_t MIN_SIZE = 4095;
+static const size_t MIN_SIZE = 256;
 
 #if defined(__LLP64__) | defined(__LP64__) | defined(__ILP64__)
 typedef long unsigned int address_t;
@@ -68,7 +68,7 @@ static mempool_t * mempool_get_next_address(mempool_t * prev) {
 static void mempool_print_page(mempool_t * pool) {
 	assert(pool != NULL);
 
-	printf("prev=%p <- %p(%p,%d) -> %p\n",
+	printf("prev=%p <- %p(%p,%ld) -> %p\n",
 		pool->prev,
 		pool,
 		&pool->data[0],
@@ -176,7 +176,6 @@ ele_mempool_alloc(const size_t a_size) {
 		assert(next_tail_end > 0);
 		if (pools.end_in_raw_area > next_tail_end) {
 			mempool_t * old_tail = pools.tail;
-			uint8_t * p = (uint8_t *)old_tail;
 			pool = (void *)next_tail_begin;
 			pool->size = a_size;
 			mempool_append(old_tail, pool);
