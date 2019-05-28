@@ -39,7 +39,8 @@ static void * sender(void * arg) {
             "To be or",
             "not to be;",
             "that is the question.",
-            "END"
+            "END",
+            ""
     };
     size_t total_size = 256;
     ele_queue_item_t *d = malloc(total_size);
@@ -48,19 +49,24 @@ static void * sender(void * arg) {
 
     srand(10);
     int i=0;
-    while (is_end(data[i]) != 0) {
+    while (strlen(data[i]) > 0) {
         const char* w = data[i++];
         strncpy(d->data, w, strlen(w));
         if (ele_queue_push(q, d) != ELE_SUCCESS) {
             break;
+        } else {
+            printf("%s\n", w);
+            fflush(stdout);
         }
 
         usleep(rand() % 200);
     }
-
     free(d);
 
-	return NULL;
+    printf("sender completed\n");
+    fflush(stdout);
+
+    return NULL;
 }
 
 static void * receiver(void * arg) {
@@ -72,14 +78,16 @@ static void * receiver(void * arg) {
         if (is_end(w) == 0) {
             break;
         } else {
-            printf("%s ", w);
+            printf("%s\n", w);
+            fflush(stdout);
         }
 
         usleep(rand() % 200);
     }
-    printf("\n");
+    printf("receiver completed\n");
+    fflush(stdout);
 
-    return arg;
+    return NULL;
 }
 
 static void test_example02(void)
@@ -87,7 +95,7 @@ static void test_example02(void)
     static const int SENDER_ID =    100;
     static const int RECEIVER_ID =  101;
 
-    ele_queue_desc_t* q = ele_queue_create(1024);
+    ele_queue_desc_t* q = ele_queue_create(4096);
 
 	ele_task_init_attr_t attr = {
 		.id = SENDER_ID,
@@ -96,17 +104,17 @@ static void test_example02(void)
 		.start_routine_entry = sender,
 		.start_routine_arg = q
 	};
-	if (ele_task_create(attr, ELE_TASK_WAIT) != ELE_SUCCESS) {
+	if (ele_task_create(attr, ELE_TASK_NO_WAIT) != ELE_SUCCESS) {
 		fprintf(stderr, "sender creation error\n");
 	}
 	attr.id = RECEIVER_ID;
     attr.start_routine_entry = receiver;
-    if (ele_task_create(attr, ELE_TASK_WAIT) != ELE_SUCCESS) {
+    if (ele_task_create(attr, ELE_TASK_NO_WAIT) != ELE_SUCCESS) {
         fprintf(stderr, "receive creation error\n");
     }
 
-    printf("all threads start\n");
-    ele_task_start_all();
+//    printf("all threads start\n");
+//    ele_task_start_all();
 
     ele_task_join(SENDER_ID);
     ele_task_join(RECEIVER_ID);

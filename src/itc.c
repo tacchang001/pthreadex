@@ -110,26 +110,27 @@ int ele_queue_push(ele_queue_desc_t * qdes,
 
 int ele_queue_pop(ele_queue_desc_t * qdes,
 		ele_queue_item_t * const item) {
-	assert(qdes != NULL);
-	assert(qdes->attribute != NULL);
-	assert(QUEUE_ATTRIBUTE(qdes)->efd != -1);
-	assert(item != NULL);
+    assert(qdes != NULL);
+    assert(qdes->attribute != NULL);
+    assert(QUEUE_ATTRIBUTE(qdes)->efd != -1);
+    assert(item != NULL);
 
-	entry_t * t = QUEUE_ATTRIBUTE(qdes)->head.tqh_first;
-	assert(t != NULL);
-	ele_queue_item_t * p = t->item;
-	memcpy(item, p, p->data_length);
-	TAILQ_REMOVE(&QUEUE_ATTRIBUTE(qdes)->head,
-			QUEUE_ATTRIBUTE(qdes)->head.tqh_first, entries);
+    u_int64_t value;
+    int read_result = eventfd_read(QUEUE_ATTRIBUTE(qdes)->efd, &value);
+    if (read_result == -1) {
+        perror("eventfd_read");
+        return ELE_FAILURE;
 
-	u_int64_t value;
-	int read_result = eventfd_read(QUEUE_ATTRIBUTE(qdes)->efd, &value);
-	if (read_result == -1) {
-		perror("eventfd_read");
-		return ELE_FAILURE;
-	}
+    } else {
+        entry_t *t = QUEUE_ATTRIBUTE(qdes)->head.tqh_first;
+        assert(t != NULL);
+        ele_queue_item_t *p = t->item;
+        memcpy(item, p, p->data_length);
+        TAILQ_REMOVE(&QUEUE_ATTRIBUTE(qdes)->head,
+                     QUEUE_ATTRIBUTE(qdes)->head.tqh_first, entries);
+    }
 
-	return ELE_SUCCESS;
+    return ELE_SUCCESS;
 }
 
 eventfd_t ele_queue_get_desc(ele_queue_desc_t * qdes) {
