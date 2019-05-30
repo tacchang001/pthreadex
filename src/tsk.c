@@ -47,7 +47,6 @@ static void tab_init(void) {
     for (i = 0; i < TAB_SIZ; i++) {
         init_record(&tab[i]);
     }
-
     pthread_mutex_init(&mutex_wait_for_start, NULL);
     pthread_cond_init(&cond_wait_for_start, NULL);
 }
@@ -215,24 +214,23 @@ int ele_task_create(
 int ele_task_destroy(int id) {
     assert(id > 0);
 
-    do {
-        SCOPED_LOCK(errchkmutex);
+    const pthread_t tid = ele_task_get_thread_id(id);
 
-        const pthread_t tid = ele_task_get_thread_id(id);
+    if (pthread_cancel(tid) != 0) {
+        ELE_PERROR("ele_task_destroy");
+    }
 
-        if (pthread_cancel(tid) != 0) {
-            ELE_PERROR("ele_task_destroy");
-        }
-
-        void *result = NULL;
-        if (pthread_join(tid, &result) != 0) {
-            ELE_PERROR("ele_task_destroy");
-        }
-        ele_task_attr_t* tab = get_task_attr(id);
-        if (tab != NULL) {
-            init_record(tab);
-        }
-    } while (0);
+    void *result = NULL;
+    if (pthread_join(tid, &result) != 0) {
+        ELE_PERROR("ele_task_destroy");
+    }
+    ele_task_attr_t* tab = get_task_attr(id);
+    if (tab != NULL) {
+        printf("task:%d ended\n", id);
+        init_record(tab);
+    } else {
+        fprintf("task id failure:%d\n", id);
+    }
 
     return ELE_SUCCESS;
 }
@@ -243,20 +241,18 @@ int ele_task_destroy(int id) {
 int ele_task_join(int id) {
     assert(id > 0);
 
-    do {
-        SCOPED_LOCK(errchkmutex);
+    const pthread_t tid = ele_task_get_thread_id(id);
 
-        const pthread_t tid = ele_task_get_thread_id(id);
-
-        printf("tid:%x\n", tid);
-        if (pthread_join(tid, NULL) != 0) {
-            ELE_PERROR("ele_task_join");
-        }
-        ele_task_attr_t* tab = get_task_attr(id);
-        if (tab != NULL) {
-            init_record(tab);
-        }
-    } while (0);
+    if (pthread_join(tid, NULL) != 0) {
+        ELE_PERROR("ele_task_join");
+    }
+    ele_task_attr_t* tab = get_task_attr(id);
+    if (tab != NULL) {
+        printf("task:%d ended\n", id);
+        init_record(tab);
+    } else {
+        fprintf("task id failure:%d\n", id);
+    }
 
     return 0;
 }
