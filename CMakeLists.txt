@@ -36,12 +36,12 @@ include(cmakes/common.cmake)
 # Profiling
 option(COMPILE_GCOV "Coverage measurement" ON)
 if(COMPILE_GCOV)
-    SET(GCC_COVERAGE_COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
+    set(GCC_COVERAGE_COMPILE_FLAGS "-fprofile-arcs -ftest-coverage")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
 
-    SET(GCC_COVERAGE_LINK_FLAGS "-lgcov")
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
+    set(GCC_COVERAGE_LINK_FLAGS "-lgcov")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
 endif(COMPILE_GCOV)
 
 # 各プロジェクトをadd_subdirectory
@@ -60,4 +60,3 @@ if(COMPILE_TESTS)
 
     add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 endif(COMPILE_TESTS)
-

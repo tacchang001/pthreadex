@@ -1,15 +1,6 @@
 #define _GNU_SOURCE
 
 #include <sched.h>
-
-#include "ele_task.h"
-
-#define ELE_TSK_GLOBAL
-
-#include "tsk.h"
-
-#undef  ELE_TSK_GLOBAL
-
 #include <assert.h>
 #include <string.h>
 #include <errno.h>
@@ -17,14 +8,15 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include "ele_task.h"
 #include "ele_error.h"
 #include "mutex_lock.h"
 
-typedef struct {
-    ele_task_entry_t start_routine_entry;
-    void *start_routine_arg;
-    ele_task_wait_for_start_t wait;
-} ele_task_start_routine_argument_t;
+#define ELE_TSK_GLOBAL
+
+#include "tsk.h"
+
+#undef  ELE_TSK_GLOBAL
 
 const int INVALID_TSK_NO = -1;
 
@@ -36,11 +28,36 @@ static const size_t TAB_SIZ = (sizeof(tab) / sizeof(tab[0]));
 static pthread_mutex_t mutex_wait_for_start;
 static pthread_cond_t cond_wait_for_start;
 
+/*
+ *
+ */
+void ele_task_wait_to_start(void) {
+    pthread_mutex_lock(&mutex_wait_for_start);
+    pthread_cond_wait(&cond_wait_for_start, &mutex_wait_for_start);
+    pthread_mutex_unlock(&mutex_wait_for_start);
+}
+
+/*
+ *
+ */
+void ele_task_start_all(void) {
+    usleep(50);
+    pthread_mutex_lock(&mutex_wait_for_start);
+    pthread_cond_broadcast(&cond_wait_for_start);
+    pthread_mutex_unlock(&mutex_wait_for_start);
+}
+
+/*
+ *
+ */
 static inline void init_record(ele_task_attr_t* tab) {
     tab->thread_id = 0;
     tab->init_attr.id = INVALID_TSK_NO;
 }
 
+/*
+ *
+ */
 __attribute__((constructor))
 static void tab_init(void) {
     unsigned int i;
@@ -51,7 +68,9 @@ static void tab_init(void) {
     pthread_cond_init(&cond_wait_for_start, NULL);
 }
 
-
+/*
+ *
+ */
 static void print_thread_affinity(int tskno, int cpu, const pthread_t id) {
 #ifndef NDEBUG
     int cores = sysconf(_SC_NPROCESSORS_ONLN);
@@ -70,6 +89,9 @@ static void print_thread_affinity(int tskno, int cpu, const pthread_t id) {
 #endif
 }
 
+/*
+ *
+ */
 static ele_task_attr_t* get_task_attr(
         const int id) {
     unsigned int i = 0;
@@ -81,7 +103,6 @@ static ele_task_attr_t* get_task_attr(
 
     return NULL;
 }
-
 
 /*
  *
@@ -103,25 +124,6 @@ static ele_task_attr_t *get_free_task_attr(void) {
             return &tab[i];
         }
     }
-
-    return NULL;
-}
-
-/*
- *
- */
-static void* start_routine(
-        void *routine) {
-
-    const ele_task_start_routine_argument_t* ep = (ele_task_start_routine_argument_t*)routine;
-
-    if (ep->wait == ELE_TASK_WAIT) {
-        pthread_mutex_lock(&mutex_wait_for_start);
-        pthread_cond_wait(&cond_wait_for_start, &mutex_wait_for_start);
-        pthread_mutex_unlock(&mutex_wait_for_start);
-    }
-
-    ep->start_routine_entry(ep->start_routine_arg);
 
     return NULL;
 }
@@ -174,11 +176,7 @@ int ele_task_create(
                 break;
         }
         pthread_t id = 0;
-        ele_task_start_routine_argument_t t;
-        t.start_routine_entry = attr.start_routine_entry;
-        t.start_routine_arg = attr.start_routine_arg;
-        t.wait = wait;
-        if (pthread_create(&id, &a, start_routine, &t) != 0) {
+        if (pthread_create(&id, &a, attr.start_routine_entry, attr.start_routine_arg) != 0) {
             ELE_PERROR("ele_task_create");
             return ELE_FAILURE;
         }
@@ -255,16 +253,6 @@ int ele_task_join(int id) {
     }
 
     return 0;
-}
-
-/*
- *
- */
-void ele_task_start_all(void) {
-    usleep(50);
-    pthread_mutex_lock(&mutex_wait_for_start);
-    pthread_cond_broadcast(&cond_wait_for_start);
-    pthread_mutex_unlock(&mutex_wait_for_start);
 }
 
 /*

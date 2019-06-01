@@ -2,21 +2,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include "ele_task.h"
 #include "ele_error.h"
 #include "queue.h"
 
-#include <stdio.h>
-#include <unistd.h>
 
-
-#define MAX_VALUE   10000
+#define MAX_VALUE   1000
 #define DISPLAY_STEP    (MAX_VALUE / 10)
 
 
 void * sender(void * arg) {
     struct threadqueue *q = arg;
+
+    ele_task_wait_to_start();
 
     srand(10);
     int n = MAX_VALUE;
@@ -26,7 +27,7 @@ void * sender(void * arg) {
         sprintf(p_data, "%0*d", DIGIT, i);
         thread_queue_add(q, p_data, 1);
 
-        int interval = rand() % 200;
+        unsigned int interval = rand() % 1000;
         if ((i%DISPLAY_STEP) == 0) printf("[%d]sender wait %dus ...\n", i, interval);
         usleep(interval);
     }
@@ -38,6 +39,8 @@ void * sender(void * arg) {
 
 void * receiver(void * arg) {
     struct threadqueue *q = arg;
+
+    ele_task_wait_to_start();
 
     struct threadmsg msg;
     struct timespec timeout = {
@@ -55,11 +58,11 @@ void * receiver(void * arg) {
             break;
         }
 
+        unsigned int interval = rand() % 2000;
         if ((a%DISPLAY_STEP) == 0) {
-            printf("[%d][%s]receiver wait ...\n", a, word);
+            printf("[%d][%s]receiver wait %dus ...\n", a, word, interval);
         }
 
-        int interval = rand() % 200;
         usleep(interval);
     }
 
@@ -76,12 +79,14 @@ static void test_example02(void)
 
     struct threadqueue q;
     int actual = thread_queue_init(&q);
+    if (actual != ELE_SUCCESS) {
+        perror("test_example02");
+        exit(-1);
+    }
 
     ele_task_init_attr_t attr = {
-            .id = SENDER_ID,
             .schedpolicy = SCHED_OTHER,
             .schedparam = 0,
-            .start_routine_entry = sender,
             .start_routine_arg = &q
     };
     attr.id = RECEIVER_ID;

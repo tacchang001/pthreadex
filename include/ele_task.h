@@ -67,6 +67,11 @@ void ele_task_display_pthread_attr(
 /**
  *
  */
+void ele_task_wait_to_start(void);
+
+/**
+ *
+ */
 void ele_task_start_all(void);
 
 

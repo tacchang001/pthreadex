@@ -16,10 +16,10 @@ add_executable(${EXAMPLE_QUEUE}
         ${HEADERS}
         )
 
-# target_compile_options(${EXAMPLE_QUEUE}
-#         PRIVATE ${CMAKE_CXX_FLAGS}
-#         )
-
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS} -std=gnu99")
+#target_compile_options(${EXAMPLE_QUEUE}
+#     PRIVATE ${CMAKE_C_FLAGS}
+#     )
 
 target_include_directories(${EXAMPLE_QUEUE}
         PRIVATE ../../include
