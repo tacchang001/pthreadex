@@ -19,9 +19,3 @@ typedef struct {
 	pthread_t thread_id;
 } ele_task_attr_t;
 
-typedef struct {
-	ele_task_entry_t entry;
-	void* arg;
-} ele_task_func_call_t;
-
-EXTERN void * ele_task_container(void* arg);
